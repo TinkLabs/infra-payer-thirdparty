@@ -1,7 +1,7 @@
 package access_token
 
 import (
-	"github.com/TinkLabs/go-webservices/valoot"
+	"github.com/TinkLabs/go-services/valoot"
 )
 
 type Client struct {
