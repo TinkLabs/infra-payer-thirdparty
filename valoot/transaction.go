@@ -42,6 +42,7 @@ type Transaction struct {
 	Currency      string         `json:"currency"`
 	Amount        float64        `json:"amount"`
 	Message       string         `json:"message"`
+	Extra         interface{}    `json:"extra"`
 	CreatedAt     string         `json:"created_at"`
 	UpdatedAt     string         `json:"updated_at"`
 	ExpiredAt     *string        `json:"expired_at"`
@@ -52,17 +53,17 @@ type Transaction struct {
 }
 
 type CreateTransactionParams struct {
-	Currency        string  `json:"currency"`
-	Amount          string  `json:"amount"`
-	CallbackUrl     string  `json:"callback_url"`
-	RedirectUrl     *string `json:"redirect_url,omitempty"`
-	ProductName     string  `json:"product_name"`
-	Service         string  `json:"service"`
-	Wallet          string  `json:"wallet"`
-	TransactionType *string `json:"type,omitempty"`
-	AuthCode        *int    `json:"auth_code,omitempty"`
-	Openid          *string `json:"openid,omitempty"`
-	Extra           *string `json:"extra,omitempty"`
+	Currency        string                 `json:"currency"`
+	Amount          string                 `json:"amount"`
+	CallbackUrl     string                 `json:"callback_url"`
+	ProductName     string                 `json:"product_name"`
+	Service         string                 `json:"service"`
+	Wallet          string                 `json:"wallet"`
+	Extra           map[string]interface{} `json:"extra,omitempty"`
+	RedirectUrl     *string                `json:"redirect_url,omitempty"`
+	TransactionType *string                `json:"type,omitempty"`
+	AuthCode        *int                   `json:"auth_code,omitempty"`
+	Openid          *string                `json:"openid,omitempty"`
 }
 
 type ListTransactionParams struct {
