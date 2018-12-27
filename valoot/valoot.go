@@ -18,7 +18,7 @@ var (
 	debug    bool
 	backends ValootBackend
 
-	DefaultTTL = time.Second * 60
+	DefaultTTL = time.Second * 5
 
 	httpClient = &http.Client{
 		Timeout: DefaultTTL,
