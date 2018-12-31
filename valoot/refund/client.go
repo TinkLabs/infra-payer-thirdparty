@@ -18,7 +18,7 @@ func (c Client) Refund(accessToken, transactionId string, amount float64) (resp 
 	content := map[string]string{}
 
 	content["transaction_id"] = transactionId
-	content["amount"] = strconv.FormatFloat(amount, 'f', 6, 64)
+	content["amount"] = strconv.FormatFloat(amount, 'f', -1, 64)
 
 	path := "/v1/refunds"
 	err = c.B.Call("POST", path, accessToken, nil, &content, &resp)

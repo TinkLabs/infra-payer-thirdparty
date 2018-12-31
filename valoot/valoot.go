@@ -99,9 +99,7 @@ func (s *BackendConfiguration) Do(req *http.Request, v interface{}) error {
 		return err
 	}
 
-	if debug {
-		log.Printf("valoot response: %s\n", string(resBody))
-	}
+	log.Printf("Valoot resp body: %s\n", string(resBody))
 
 	// parses error response if status code is not 2xx
 	if res.StatusCode < 200 || res.StatusCode >= 400 {
