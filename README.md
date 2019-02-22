@@ -1,1 +1,1 @@
-### Payment thirdparty for payer
+#### Payment third party gateways
