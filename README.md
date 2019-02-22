@@ -1,2 +1,1 @@
-# go-services
-Valoot SDK
+# Payment thirdyparty for payer
