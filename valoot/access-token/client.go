@@ -1,7 +1,7 @@
 package access_token
 
 import (
-	"github.com/TinkLabs/go-services/valoot"
+	"github.com/TinkLabs/payer-thirdparty/valoot"
 )
 
 type Client struct {
@@ -33,5 +33,5 @@ func (c Client) RefreshAccessToken(params *valoot.AccessTokenParams) (resp *valo
 }
 
 func getC() Client {
-	return Client{valoot.GetBackend(valoot.PublicBackend)}
+	return Client{valoot.GetBackend(valoot.APIBackend)}
 }

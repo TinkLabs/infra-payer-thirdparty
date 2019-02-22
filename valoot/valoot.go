@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -18,7 +19,7 @@ var (
 	debug    bool
 	backends ValootBackend
 
-	DefaultTTL = time.Second * 5
+	DefaultTTL = time.Second * 6
 
 	httpClient = &http.Client{
 		Timeout: DefaultTTL,
@@ -48,11 +49,13 @@ type BackendConfiguration struct {
 type SupportedBackend string
 
 const (
-	PublicBackend SupportedBackend = "public"
+	// APIBackend is a constant representing the API service backend.
+	APIBackend SupportedBackend = "api"
 )
 
 type ValootBackend struct {
-	Public Backend
+	API Backend
+	mu  sync.RWMutex
 }
 
 func (s *BackendConfiguration) NewRequest(method, path, accessToken string, body io.Reader) (*http.Request, error) {
@@ -165,18 +168,38 @@ func (s BackendConfiguration) Call(method, path, accessToken string, form *url.V
 	return nil
 }
 
-func GetBackend(backend SupportedBackend) Backend {
-	var ret Backend
-	switch backend {
-	case PublicBackend:
-		if backends.Public == nil {
-			backends.Public = BackendConfiguration{backend, apiUrl, httpClient}
-		}
+func GetBackend(backendType SupportedBackend) Backend {
+	var backend Backend
 
-		ret = backends.Public
+	backends.mu.RLock()
+
+	switch backendType {
+	case APIBackend:
+		if backends.API != nil {
+			backend = backends.API
+			backends.mu.RUnlock()
+
+			return backend
+		}
 	}
 
-	return ret
+	backends.mu.RUnlock()
+
+	// acquire an exclusive lock
+	backends.mu.Lock()
+
+	// must check for nil
+	if backends.API == nil {
+		backends.API = BackendConfiguration{backendType, apiUrl, httpClient}
+	}
+
+	switch backendType {
+	case APIBackend:
+		backend = backends.API
+	}
+
+	backends.mu.Unlock()
+	return backend
 }
 
 func SetDebug(value bool) {

@@ -3,7 +3,7 @@ package refund
 import (
 	"strconv"
 
-	"github.com/TinkLabs/go-services/valoot"
+	"github.com/TinkLabs/payer-thirdparty/valoot"
 )
 
 type Client struct {
@@ -26,5 +26,5 @@ func (c Client) Refund(accessToken, transactionId string, amount float64) (resp 
 }
 
 func getC() Client {
-	return Client{valoot.GetBackend(valoot.PublicBackend)}
+	return Client{valoot.GetBackend(valoot.APIBackend)}
 }

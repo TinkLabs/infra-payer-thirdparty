@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/TinkLabs/go-services/valoot"
+	"github.com/TinkLabs/payer-thirdparty/valoot"
 )
 
 type Client struct {
@@ -75,5 +75,5 @@ func (c Client) GetTransactions(accessToken string, params *valoot.ListTransacti
 }
 
 func getC() Client {
-	return Client{valoot.GetBackend(valoot.PublicBackend)}
+	return Client{valoot.GetBackend(valoot.APIBackend)}
 }
