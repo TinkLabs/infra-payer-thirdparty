@@ -1,9 +1,8 @@
-package valoot
+package qf
 
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -14,6 +13,8 @@ import (
 	"time"
 )
 
+type SupportedBackend string
+
 const (
 	// APIBackend is a constant representing the API service backend.
 	APIBackend SupportedBackend = "api"
@@ -21,16 +22,17 @@ const (
 	defaultHTTPTimeout = 10 * time.Second
 )
 
-var (
-	apiUrl   string
-	debug    bool
-	backends ValootBackend
+// AppCode is the qf code used globally in the binding.
+var AppCode string
 
+var (
+	apiUrl     string
+	backends   Backends
 	httpClient = &http.Client{Timeout: defaultHTTPTimeout}
 )
 
 type Backend interface {
-	Call(method, path, accessToken string, form *url.Values, content interface{}, v interface{}) error
+	Call(method, path, qfAppCode, qfSign string, form *url.Values, content interface{}, v interface{}) error
 }
 
 type BackendConfiguration struct {
@@ -39,65 +41,56 @@ type BackendConfiguration struct {
 	HTTPClient *http.Client
 }
 
-type SupportedBackend string
-
-type ValootBackend struct {
+type Backends struct {
 	API Backend
 	mu  sync.RWMutex
 }
 
-func (s *BackendConfiguration) NewRequest(method, path, accessToken string, body io.Reader) (*http.Request, error) {
+func (s *BackendConfiguration) NewRequest(method, path, qfAppCode, qfSign string, body io.Reader) (*http.Request, error) {
 	if !strings.HasPrefix(path, "/") {
 		path = "/" + path
 	}
+
 	path = s.URL + path
 
 	req, err := http.NewRequest(method, path, body)
 	if err != nil {
-		log.Printf("Cannot create valoot request: %v\n", err)
+		log.Printf("Cannot create qf request: %v\n", err)
 		return nil, err
 	}
 
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
-	// req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	if accessToken != "" {
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", accessToken))
-	}
+	req.Header.Add("X-QF-APPCODE", qfAppCode)
+	req.Header.Add("X-QF-SIGN", qfSign)
 
 	return req, nil
 }
 
 func (s *BackendConfiguration) Do(req *http.Request, v interface{}) error {
 	log.Printf("Requesting %v %v%v\n", req.Method, req.URL.Host, req.URL.Path)
-	start := time.Now()
 
 	res, err := s.HTTPClient.Do(req)
 
-	if debug {
-		log.Printf("Completed in %v\n", time.Since(start))
-	}
-
 	if err != nil {
-		log.Printf("Request to valoot failed: %v\n", err)
+		log.Printf("Failed to do http request: %v\n", err)
 		return err
 	}
+
 	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		log.Printf("Failed to send request: %v\n", err)
+		return err
+	}
 
 	resBody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		log.Printf("Cannot parse valoot response: %v\n", err)
+		log.Printf("Failed to read res.body: %v\n", err)
 		return err
 	}
 
-	log.Printf("Valoot resp body: %s\n", string(resBody))
-
-	// parses error response if status code is not 2xx
-	if res.StatusCode < 200 || res.StatusCode >= 400 {
-		var err ErrorResp
-		json.Unmarshal(resBody, &err)
-		return err
-	}
+	log.Printf("QF resp body: %s\n", string(resBody))
 
 	if v != nil {
 		return json.Unmarshal(resBody, v)
@@ -126,7 +119,7 @@ func (s *BackendConfiguration) Do(req *http.Request, v interface{}) error {
  * obj := RespObj{}
  * s.Call("POST", "/some_resource", "xxx", "1234567890", nil, &c, obj)
  */
-func (s BackendConfiguration) Call(method, path, accessToken string, form *url.Values, content interface{}, v interface{}) error {
+func (s *BackendConfiguration) Call(method, path, qfAppCode, qfSign string, form *url.Values, content interface{}, v interface{}) error {
 	var body io.Reader
 
 	method = strings.ToUpper(method)
@@ -139,12 +132,12 @@ func (s BackendConfiguration) Call(method, path, accessToken string, form *url.V
 		if content != nil {
 			encoded, _ := json.Marshal(content)
 
-			fmt.Printf("body: %s\n", string(encoded))
+			log.Printf("encoded body: %s\n", string(encoded))
 			body = bytes.NewBuffer(encoded)
 		}
 	}
 
-	req, err := s.NewRequest(method, path, accessToken, body)
+	req, err := s.NewRequest(method, path, qfAppCode, qfSign, body)
 	if err != nil {
 		return err
 	}
@@ -156,6 +149,7 @@ func (s BackendConfiguration) Call(method, path, accessToken string, form *url.V
 	return nil
 }
 
+// Concurrency-safe
 func GetBackend(backendType SupportedBackend) Backend {
 	var backend Backend
 
@@ -178,7 +172,7 @@ func GetBackend(backendType SupportedBackend) Backend {
 
 	// must check for nil
 	if backends.API == nil {
-		backends.API = BackendConfiguration{backendType, apiUrl, httpClient}
+		backends.API = &BackendConfiguration{backendType, apiUrl, httpClient}
 	}
 
 	switch backendType {
@@ -190,11 +184,7 @@ func GetBackend(backendType SupportedBackend) Backend {
 	return backend
 }
 
-func SetDebug(value bool) {
-	debug = value
-}
-
-func Setup(url string) {
+func SetUrl(url string) {
 	apiUrl = url
 }
 
