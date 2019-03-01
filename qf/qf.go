@@ -171,12 +171,11 @@ func GetBackend(backendType SupportedBackend) Backend {
 	backends.mu.Lock()
 
 	// must check for nil
-	if backends.API == nil {
-		backends.API = &BackendConfiguration{backendType, apiUrl, httpClient}
-	}
-
 	switch backendType {
 	case APIBackend:
+		if backends.API == nil {
+			backends.API = &BackendConfiguration{backendType, apiUrl, httpClient}
+		}
 		backend = backends.API
 	}
 

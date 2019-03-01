@@ -7,10 +7,10 @@ import (
 	"time"
 )
 
-func TestQfChargeClient(t *testing.T) {
+func TestValootTransactionClient(t *testing.T) {
 	var n sync.WaitGroup
 
-	for i := 0; i < 1024; i++ {
+	for i := 0; i < 10000; i++ {
 		n.Add(1)
 		go func() {
 			start := time.Now()
