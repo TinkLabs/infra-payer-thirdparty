@@ -60,7 +60,7 @@ func (s *BackendConfiguration) NewRequest(method, path, qfAppCode, qfSign string
 	}
 
 	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded;charset=utf-8")
 	req.Header.Add("X-QF-APPCODE", qfAppCode)
 	req.Header.Add("X-QF-SIGN", qfSign)
 
@@ -123,17 +123,16 @@ func (s *BackendConfiguration) Call(method, path, qfAppCode, qfSign string, form
 	var body io.Reader
 
 	method = strings.ToUpper(method)
-	if method == "GET" {
+	if method == "POST" || method == "GET" {
 		if form != nil && len(*form) > 0 {
-			path += "?" + form.Encode()
+			body = strings.NewReader(form.Encode())
 		}
 	} else {
-		// POST, PUT, DELETE
 		if content != nil {
 			encoded, _ := json.Marshal(content)
 
 			log.Printf("encoded body: %s\n", string(encoded))
-			body = bytes.NewBuffer(encoded)
+			body = bytes.NewReader(encoded)
 		}
 	}
 

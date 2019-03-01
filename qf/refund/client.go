@@ -1,6 +1,8 @@
 package refund
 
 import (
+	"net/url"
+
 	"github.com/TinkLabs/payer-thirdparty/qf"
 )
 
@@ -17,7 +19,37 @@ func (c Client) New(sign string, params *qf.RefundParams) (*qf.Refund, error) {
 	path := "/v1/refund"
 	refund := &qf.Refund{}
 
-	err := c.B.Call("POST", path, c.AppCode, sign, nil, params, refund)
+	uv := &url.Values{}
+
+	if params.Syssn != "" {
+		uv.Set("syssn", params.Syssn)
+	}
+	if params.OutTradeNo != "" {
+		uv.Set("out_trade_no", params.OutTradeNo)
+	}
+
+	if params.Txamt != "" {
+		uv.Set("txamt", params.Txamt)
+	}
+	if params.Txdtm != "" {
+		uv.Set("txdtm", params.Txdtm)
+	}
+
+	if params.Mchid != "" {
+		uv.Set("mchid", params.Mchid)
+	}
+	if params.Txzone != "" {
+		uv.Set("txzone", params.Txzone)
+	}
+
+	if params.ReturnUrl != "" {
+		uv.Set("return_url", params.ReturnUrl)
+	}
+	if params.Udid != "" {
+		uv.Set("udid", params.Udid)
+	}
+
+	err := c.B.Call("POST", path, c.AppCode, sign, uv, nil, refund)
 	return refund, err
 }
 
