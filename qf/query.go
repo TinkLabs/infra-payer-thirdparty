@@ -2,16 +2,16 @@ package qf
 
 // QueryParams is the set of parameters that can be used when creating a query.
 type QueryParams struct {
-	Mchid      string      `json:"mchid"`
-	Syssn      string      `json:"syssn"`
-	OutTradeNo string      `json:"out_trade_no"`
-	PayType    PaymentType `json:"pay_type"`
-	Respcd     PaymentCode `json:"respcd"`
-	StartTime  string      `json:"start_time"`
-	EndTime    string      `json:"end_time"`
-	Txzone     string      `json:"txzone"`
-	Page       string      `json:"page"`
-	PageSize   string      `json:"page_size"`
+	Mchid      string      `json:"mchid,omitempty"`
+	Syssn      string      `json:"syssn,omitempty"`
+	OutTradeNo string      `json:"out_trade_no,omitempty"`
+	PayType    PaymentType `json:"pay_type,omitempty"`
+	Respcd     PaymentCode `json:"respcd,omitempty"`
+	StartTime  string      `json:"start_time,omitempty"`
+	EndTime    string      `json:"end_time,omitempty"`
+	Txzone     string      `json:"txzone,omitempty"`
+	Page       string      `json:"page,omitempty"`
+	PageSize   string      `json:"page_size,omitempty"`
 }
 
 // Query is the resource representing a qf QueryList.
