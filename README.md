@@ -1,2 +1,2 @@
 # Payer-thirdparty
- Payment third-party gateways
+ Payment third-party GateWays
