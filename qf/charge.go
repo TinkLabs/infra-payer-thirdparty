@@ -12,7 +12,7 @@ type PaymentType string
 
 const (
 	WeChatFrontScan PaymentType = "800201"
-	AlipayFrontScan PaymentType = "801501"
+	AlipayFrontScan PaymentType = "800101"
 
 	WeChatVersoScan PaymentType = "800208"
 	AlipayVersoScan PaymentType = "800108"
