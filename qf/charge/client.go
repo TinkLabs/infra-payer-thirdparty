@@ -1,6 +1,7 @@
 package charge
 
 import (
+	"net/http"
 	"net/url"
 
 	"github.com/TinkLabs/payer-thirdparty/qf"
@@ -62,7 +63,7 @@ func (c Client) New(sign string, params *qf.ChargeParams) (*qf.Charge, error) {
 		uv.Set("udid", params.Udid)
 	}
 
-	err := c.B.Call("POST", path, c.AppCode, sign, uv, nil, charge)
+	err := c.B.Call(http.MethodPost, path, c.AppCode, sign, uv, nil, charge)
 	return charge, err
 }
 

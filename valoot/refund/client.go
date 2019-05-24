@@ -1,6 +1,7 @@
 package refund
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/TinkLabs/payer-thirdparty/valoot"
@@ -21,7 +22,7 @@ func (c Client) Refund(accessToken, transactionId string, amount float64) (resp 
 	content["amount"] = strconv.FormatFloat(amount, 'f', -1, 64)
 
 	path := "/v1/refunds"
-	err = c.B.Call("POST", path, accessToken, nil, &content, &resp)
+	err = c.B.Call(http.MethodPost, path, accessToken, nil, &content, &resp)
 	return resp, err
 }
 

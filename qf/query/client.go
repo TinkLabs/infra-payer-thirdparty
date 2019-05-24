@@ -1,6 +1,7 @@
 package query
 
 import (
+	"net/http"
 	"net/url"
 
 	"github.com/TinkLabs/payer-thirdparty/qf"
@@ -61,7 +62,7 @@ func (c Client) Get(sign string, params *qf.QueryParams) (*qf.Query, error) {
 		uv.Set("page_size", params.PageSize)
 	}
 
-	err := c.B.Call("GET", path, c.AppCode, sign, uv, nil, query)
+	err := c.B.Call(http.MethodGet, path, c.AppCode, sign, uv, nil, query)
 	return query, err
 }
 

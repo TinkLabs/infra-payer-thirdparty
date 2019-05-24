@@ -122,8 +122,7 @@ func (s *BackendConfiguration) Do(req *http.Request, v interface{}) error {
 func (s *BackendConfiguration) Call(method, path, qfAppCode, qfSign string, form *url.Values, content interface{}, v interface{}) error {
 	var body io.Reader
 
-	method = strings.ToUpper(method)
-	if method == "POST" || method == "GET" {
+	if method == http.MethodPost || method == http.MethodGet {
 		if form != nil && len(*form) > 0 {
 			body = strings.NewReader(form.Encode())
 		}

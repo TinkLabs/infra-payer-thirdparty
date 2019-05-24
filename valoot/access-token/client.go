@@ -2,6 +2,7 @@ package access_token
 
 import (
 	"github.com/TinkLabs/payer-thirdparty/valoot"
+	"net/http"
 )
 
 type Client struct {
@@ -20,7 +21,7 @@ func (c Client) GetAccessToken(params *valoot.AccessTokenParams) (resp *valoot.A
 	params.GrantType = "password"
 
 	path := "/v1/oauth/token"
-	err = c.B.Call("POST", path, "", nil, params, &resp)
+	err = c.B.Call(http.MethodPost, path, "", nil, params, &resp)
 	return resp, err
 }
 
@@ -28,7 +29,7 @@ func (c Client) RefreshAccessToken(params *valoot.AccessTokenParams) (resp *valo
 	params.GrantType = "refresh_token"
 
 	path := "/v1/oauth/token"
-	err = c.B.Call("POST", path, "", nil, params, &resp)
+	err = c.B.Call(http.MethodPost, path, "", nil, params, &resp)
 	return resp, err
 }
 

@@ -1,6 +1,7 @@
 package refund
 
 import (
+	"net/http"
 	"net/url"
 
 	"github.com/TinkLabs/payer-thirdparty/qf"
@@ -49,7 +50,7 @@ func (c Client) New(sign string, params *qf.RefundParams) (*qf.Refund, error) {
 		uv.Set("udid", params.Udid)
 	}
 
-	err := c.B.Call("POST", path, c.AppCode, sign, uv, nil, refund)
+	err := c.B.Call(http.MethodPost, path, c.AppCode, sign, uv, nil, refund)
 	return refund, err
 }
 
