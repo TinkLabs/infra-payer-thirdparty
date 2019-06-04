@@ -20,18 +20,19 @@ const (
 
 // ChargeParams is the set of parameters that can be used when creating a charge.
 type ChargeParams struct {
-	Txamt      string      `json:"txamt"`
-	Txcurrcd   string      `json:"txcurrcd"`
-	PayType    PaymentType `json:"pay_type"`
-	OutTradeNo string      `json:"out_trade_no"`
-	Txdtm      string      `json:"txdtm"`
-	GoodsName  string      `json:"goods_name"`
-	Mchid      string      `json:"mchid,omitempty"`
-	PayTag     string      `json:"pay_tag,omitempty"`
-	Txzone     string      `json:"txzone,omitempty"`
-	ReturnUrl  string      `json:"return_url,omitempty"`
-	LimitPay   string      `json:"limit_pay,omitempty"`
-	Udid       string      `json:"udid,omitempty"`
+	Txamt       string      `json:"txamt"`
+	Txcurrcd    string      `json:"txcurrcd"`
+	PayType     PaymentType `json:"pay_type"`
+	OutTradeNo  string      `json:"out_trade_no"`
+	Txdtm       string      `json:"txdtm"`
+	GoodsName   string      `json:"goods_name"`
+	expiredTime int         `json:"expired_time"`
+	Mchid       string      `json:"mchid,omitempty"`
+	PayTag      string      `json:"pay_tag,omitempty"`
+	Txzone      string      `json:"txzone,omitempty"`
+	ReturnUrl   string      `json:"return_url,omitempty"`
+	LimitPay    string      `json:"limit_pay,omitempty"`
+	Udid        string      `json:"udid,omitempty"`
 }
 
 // Charge is the resource representing a qf charge.
