@@ -26,7 +26,7 @@ type ChargeParams struct {
 	OutTradeNo  string      `json:"out_trade_no"`
 	Txdtm       string      `json:"txdtm"`
 	GoodsName   string      `json:"goods_name"`
-	ExpiredTime int         `json:"expired_time"`
+	ExpiredTime string      `json:"expired_time"`
 	Mchid       string      `json:"mchid,omitempty"`
 	PayTag      string      `json:"pay_tag,omitempty"`
 	Txzone      string      `json:"txzone,omitempty"`
