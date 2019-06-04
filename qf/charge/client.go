@@ -43,6 +43,11 @@ func (c Client) New(sign string, params *qf.ChargeParams) (*qf.Charge, error) {
 	if params.GoodsName != "" {
 		uv.Set("goods_name", params.GoodsName)
 	}
+
+	if params.ExpiredTime > 0 {
+		uv.Set("expired_time", params.ExpiredTime)
+	}
+
 	if params.Mchid != "" {
 		uv.Set("mchid", params.Mchid)
 	}
