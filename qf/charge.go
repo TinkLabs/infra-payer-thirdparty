@@ -46,5 +46,6 @@ type Charge struct {
 	OutTradeNo string      `json:"out_trade_no"`
 	Syssn      string      `json:"syssn"`
 	Qrcode     string      `json:"qrcode"`
+	PayUrl     string      `json:"pay_url"`
 	Respcd     PaymentCode `json:"respcd"`
 }
