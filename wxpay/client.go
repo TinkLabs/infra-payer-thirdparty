@@ -12,32 +12,30 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"time"
 )
 
-const bodyType = "application/xml; charset=utf-8"
+const (
+	bodyType           = "application/xml; charset=utf-8"
+	defaultHTTPTimeout = 10 * time.Second
+)
 
 type Client struct {
-	account              *Account
-	signType             string
-	httpConnectTimeoutMs int
-	httpReadTimeoutMs    int
+	account     *Account
+	signType    string
+	httpTimeout time.Duration
 }
 
 func NewClient(account *Account) *Client {
 	return &Client{
-		account:              account,
-		signType:             MD5,
-		httpConnectTimeoutMs: 2000,
-		httpReadTimeoutMs:    1000,
+		account:     account,
+		signType:    MD5,
+		httpTimeout: defaultHTTPTimeout,
 	}
 }
 
-func (c *Client) SetHttpConnectTimeoutMs(ms int) {
-	c.httpConnectTimeoutMs = ms
-}
-
-func (c *Client) SetHttpReadTimeoutMs(ms int) {
-	c.httpReadTimeoutMs = ms
+func (c *Client) SetHttpTimeoutMs(t time.Duration) {
+	c.httpTimeout = t
 }
 
 func (c *Client) SetSignType(signType string) {
@@ -59,7 +57,7 @@ func (c *Client) fillRequestData(params Params) Params {
 
 // https no cert post
 func (c *Client) postWithoutCert(url string, params Params) (string, error) {
-	h := &http.Client{}
+	h := &http.Client{Timeout: c.httpTimeout}
 	p := c.fillRequestData(params)
 	response, err := h.Post(url, bodyType, strings.NewReader(MapToXml(p)))
 	if err != nil {
@@ -88,7 +86,7 @@ func (c *Client) postWithCert(url string, params Params) (string, error) {
 		TLSClientConfig:    config,
 		DisableCompression: true,
 	}
-	h := &http.Client{Transport: transport}
+	h := &http.Client{Timeout: c.httpTimeout, Transport: transport}
 	p := c.fillRequestData(params)
 	response, err := h.Post(url, bodyType, strings.NewReader(MapToXml(p)))
 	if err != nil {
