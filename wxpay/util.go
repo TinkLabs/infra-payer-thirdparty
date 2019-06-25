@@ -39,16 +39,18 @@ func XmlToMap(xmlStr string) Params {
 
 func MapToXml(params Params) string {
 	var buf bytes.Buffer
+
 	buf.WriteString(`<xml>`)
 	for k, v := range params {
 		buf.WriteString(`<`)
 		buf.WriteString(k)
-		buf.WriteString(`>`)
+		buf.WriteString(`><![CDATA[`)
 		buf.WriteString(v)
-		buf.WriteString(`</`)
+		buf.WriteString(`]]></`)
 		buf.WriteString(k)
 		buf.WriteString(`>`)
 	}
+
 	buf.WriteString(`</xml>`)
 
 	return buf.String()
