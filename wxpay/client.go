@@ -52,6 +52,7 @@ func (c *Client) fillRequestData(params Params) Params {
 	params["nonce_str"] = nonceStr()
 	params["sign_type"] = c.signType
 	params["sign"] = c.Sign(params)
+
 	return params
 }
 
@@ -59,11 +60,14 @@ func (c *Client) fillRequestData(params Params) Params {
 func (c *Client) postWithoutCert(url string, params Params) (string, error) {
 	h := &http.Client{Timeout: c.httpTimeout}
 	p := c.fillRequestData(params)
+
 	response, err := h.Post(url, bodyType, strings.NewReader(MapToXml(p)))
 	if err != nil {
 		return "", err
 	}
+
 	defer response.Body.Close()
+
 	res, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return "", err
@@ -158,33 +162,44 @@ func (c *Client) Sign(params Params) string {
 }
 
 func (c *Client) processResponseXml(xmlStr string) (Params, error) {
-	var returnCode string
+	var returnCode, resultCode string
 	params := XmlToMap(xmlStr)
-	if params.ContainsKey("return_code") {
-		returnCode = params.GetString("return_code")
-	} else {
-		return nil, errors.New("no return_code in XML")
+
+	if !params.ContainsKey("return_code") {
+		return nil, errors.New("No return_code in XML.")
 	}
-	if returnCode == Fail {
-		return params, nil
-	} else if returnCode == Success {
-		if c.ValidSign(params) {
-			return params, nil
-		} else {
-			return nil, errors.New("invalid sign value in XML")
-		}
-	} else {
-		return nil, errors.New("return_code value is invalid in XML")
+
+	returnCode = params.GetString("return_code")
+
+	if returnCode != Success {
+		return nil, errors.New("return_code failed.")
 	}
+
+	if !params.ContainsKey("result_code") {
+		return nil, errors.New("No result_code in XML.")
+	}
+
+	resultCode = params.GetString("result_code")
+	if resultCode != Success {
+		return nil, errors.New("result_code failed.")
+	}
+
+	if !c.ValidSign(params) {
+		return nil, errors.New("Invalid sign value in XML")
+	}
+
+	return params, nil
 }
 
 func (c *Client) UnifiedOrder(params Params) (Params, error) {
 	var url string
+
 	if c.account.isSandbox {
 		url = SandboxUnifiedOrderUrl
 	} else {
 		url = UnifiedOrderUrl
 	}
+
 	xmlStr, err := c.postWithoutCert(url, params)
 	if err != nil {
 		return nil, err
