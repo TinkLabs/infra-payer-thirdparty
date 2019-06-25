@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"sort"
 	"strings"
@@ -63,15 +64,18 @@ func (c *Client) postWithoutCert(url string, params Params) (string, error) {
 
 	response, err := h.Post(url, bodyType, strings.NewReader(MapToXml(p)))
 	if err != nil {
-		return "", err
+		log.Printf("Post to %s failed: %s\n", url, err.Error())
+		return "", errors.New("http.post failed.")
 	}
 
 	defer response.Body.Close()
 
 	res, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return "", err
+		log.Printf("Read response failed: %s\n", err.Error())
+		return "", errors.New("Read http response failed.")
 	}
+
 	return string(res), nil
 }
 
@@ -164,6 +168,8 @@ func (c *Client) Sign(params Params) string {
 func (c *Client) processResponseXml(xmlStr string) (Params, error) {
 	var returnCode, resultCode string
 	params := XmlToMap(xmlStr)
+
+	log.Printf("[Debug] Print response params: %v\n", params)
 
 	if !params.ContainsKey("return_code") {
 		return nil, errors.New("No return_code in XML.")
