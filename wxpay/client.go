@@ -167,9 +167,11 @@ func (c *Client) Sign(params Params) string {
 
 func (c *Client) processResponseXml(xmlStr string) (Params, error) {
 	var returnCode, resultCode string
+
+	log.Printf("[Debug] Print wxpay response params: %v\n", xmlStr)
 	params := XmlToMap(xmlStr)
 
-	log.Printf("[Debug] Print response params: %v\n", params)
+	log.Printf("[Debug] Print XmlToMap: %v\n", params)
 
 	if !params.ContainsKey("return_code") {
 		return nil, errors.New("No return_code in XML.")
