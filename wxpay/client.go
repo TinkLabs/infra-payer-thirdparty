@@ -62,6 +62,8 @@ func (c *Client) postWithoutCert(url string, params Params) (string, error) {
 	h := &http.Client{Timeout: c.httpTimeout}
 	p := c.fillRequestData(params)
 
+	log.Printf("[Debug]Print all UnifiedOrder params: %v\n", p)
+
 	response, err := h.Post(url, bodyType, strings.NewReader(MapToXml(p)))
 	if err != nil {
 		log.Printf("Post to %s failed: %s\n", url, err.Error())
