@@ -94,6 +94,8 @@ func (c *Client) postWithCert(url string, params Params) (string, error) {
 	h := &http.Client{Timeout: c.httpTimeout, Transport: trans}
 
 	p := c.fillRequestData(params)
+	log.Printf("[Debug] Print all Refund params: %v\n", p)
+
 	response, err := h.Post(url, bodyType, strings.NewReader(MapToXml(p)))
 	if err != nil {
 		return "", err
