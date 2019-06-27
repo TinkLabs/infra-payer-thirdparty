@@ -7,6 +7,7 @@ import (
 	"encoding/xml"
 	"golang.org/x/crypto/pkcs12"
 	"log"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -82,4 +83,21 @@ func pkcs12ToPem(p12 []byte, password string) tls.Certificate {
 		panic(err)
 	}
 	return cert
+}
+
+func WithCertBytes(cert, key []byte) *http.Transport {
+	tlsCert, err := tls.X509KeyPair(cert, key)
+	if err != nil {
+		log.Printf("tls.X509keyPair err: %v\n", err)
+		return nil
+	}
+
+	conf := &tls.Config{
+		Certificates: []tls.Certificate{tlsCert},
+	}
+
+	trans := &http.Transport{
+		TLSClientConfig: conf,
+	}
+	return trans
 }

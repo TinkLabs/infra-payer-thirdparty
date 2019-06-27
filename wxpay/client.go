@@ -5,7 +5,6 @@ import (
 	"crypto/hmac"
 	"crypto/md5"
 	"crypto/sha256"
-	"crypto/tls"
 	"encoding/hex"
 	"errors"
 	"io/ioutil"
@@ -83,20 +82,17 @@ func (c *Client) postWithoutCert(url string, params Params) (string, error) {
 
 // https need cert post
 func (c *Client) postWithCert(url string, params Params) (string, error) {
-	if c.account.certData == nil {
-		return "", errors.New("Empty cert data.")
+	if c.account.apiclientCert == nil || c.account.apiclientKey == nil {
+		return "", errors.New("Empty cert or key.")
 	}
 
-	cert := pkcs12ToPem(c.account.certData, c.account.mchID)
+	trans := WithCertBytes(c.account.apiclientCert, c.account.apiclientKey)
+	if trans == nil {
+		return "", errors.New("Parses PEM key pair failed.")
+	}
 
-	config := &tls.Config{
-		Certificates: []tls.Certificate{cert},
-	}
-	transport := &http.Transport{
-		TLSClientConfig:    config,
-		DisableCompression: true,
-	}
-	h := &http.Client{Timeout: c.httpTimeout, Transport: transport}
+	h := &http.Client{Timeout: c.httpTimeout, Transport: trans}
+
 	p := c.fillRequestData(params)
 	response, err := h.Post(url, bodyType, strings.NewReader(MapToXml(p)))
 	if err != nil {
