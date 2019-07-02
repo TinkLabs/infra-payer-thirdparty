@@ -17,7 +17,7 @@ import (
 
 const (
 	bodyType           = "application/xml; charset=utf-8"
-	defaultHTTPTimeout = 10 * time.Second
+	defaultHTTPTimeout = 6 * time.Second
 )
 
 type Client struct {
