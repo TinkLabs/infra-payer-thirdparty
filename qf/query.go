@@ -20,7 +20,7 @@ type Query struct {
 	Resperr  string      `json:"resperr"`
 	PageSize string      `json:"page_size"`
 	Respcd   PaymentCode `json:"respcd"`
-	Data     []MetaData  `json:"data"`
+	Data     []*MetaData `json:"data"`
 }
 
 type MetaData struct {

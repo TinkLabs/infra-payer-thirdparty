@@ -5,12 +5,13 @@ import (
 	"crypto/tls"
 	"encoding/pem"
 	"encoding/xml"
-	"golang.org/x/crypto/pkcs12"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/pkcs12"
 )
 
 func XmlToMap(xmlStr string) Params {
@@ -19,13 +20,16 @@ func XmlToMap(xmlStr string) Params {
 		start  *xml.StartElement
 		params Params
 	)
+
 	d = xml.NewDecoder(strings.NewReader(xmlStr))
 	params = make(Params)
+
 	for {
 		tok, err := d.Token()
 		if err != nil {
 			break
 		}
+
 		switch t := tok.(type) {
 		case xml.StartElement:
 			start = &t
