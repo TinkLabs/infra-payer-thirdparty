@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/xml"
 	"errors"
 	"io/ioutil"
 	"log"
@@ -46,12 +47,24 @@ func (c *Client) SetAccount(account *Account) {
 	c.account = account
 }
 
+func (c *Client) GetAccount() *Account {
+	return c.account
+}
+
 func (c *Client) fillRequestData(params Params) Params {
 	params["appid"] = c.account.appID
 	params["mch_id"] = c.account.mchID
 	params["nonce_str"] = nonceStr()
 	params["sign_type"] = c.signType
-	params["sign"] = c.Sign(params)
+	if c.account.isSandbox {
+		key, err := c.GetSignKey()
+		if err != nil {
+			log.Printf("Sign Error", err)
+		}
+		params["sign"] = c.Sign(params, key)
+	} else {
+		params["sign"] = c.Sign(params, c.account.apiKey)
+	}
 
 	return params
 }
@@ -109,7 +122,7 @@ func (c *Client) postWithCert(url string, params Params) (string, error) {
 }
 
 func (c *Client) generateSignedXml(params Params) string {
-	sign := c.Sign(params)
+	sign := c.Sign(params, c.account.apiKey)
 	params.SetString(Sign, sign)
 	return MapToXml(params)
 }
@@ -118,10 +131,10 @@ func (c *Client) ValidSign(params Params) bool {
 	if !params.ContainsKey(Sign) {
 		return false
 	}
-	return params.GetString(Sign) == c.Sign(params)
+	return params.GetString(Sign) == c.Sign(params, c.account.apiKey)
 }
 
-func (c *Client) Sign(params Params) string {
+func (c *Client) Sign(params Params, apiKey string) string {
 	var keys = make([]string, 0, len(params))
 
 	for k := range params {
@@ -143,7 +156,7 @@ func (c *Client) Sign(params Params) string {
 	}
 
 	buf.WriteString(`key=`)
-	buf.WriteString(c.account.apiKey)
+	buf.WriteString(apiKey)
 
 	var (
 		dataMd5    [16]byte
@@ -192,7 +205,7 @@ func (c *Client) processResponseXml(xmlStr string) (Params, error) {
 		return nil, errors.New("result_code failed.")
 	}
 
-	if !c.ValidSign(params) {
+	if !c.account.isSandbox && !c.ValidSign(params) {
 		return nil, errors.New("Invalid sign value in XML")
 	}
 
@@ -383,4 +396,84 @@ func (c *Client) AuthCodeToOpenid(params Params) (Params, error) {
 		return nil, err
 	}
 	return c.processResponseXml(xmlStr)
+}
+
+type GetSignKeyReq struct {
+	Mch_id    string `xml:"mch_id"`
+	Nonce_str string `xml:"nonce_str"`
+	Sign      string `xml:"sign"`
+}
+
+type GetSignKeyResp struct {
+	Return_code     string `xml:"return_code"`
+	Return_msg      string `xml:"return_msg"`
+	Mch_id          string `xml:"mch_id"`
+	Sandbox_signkey string `xml:"sandbox_signkey"`
+}
+
+//获取沙箱测试的api key
+func (c *Client) GetSignKey() (key string, err error) {
+	var req GetSignKeyReq
+	req.Mch_id = c.account.mchID
+	req.Nonce_str = nonceStr()
+	m := make(Params)
+	m.SetString("mch_id", c.account.mchID)
+	m.SetString("nonce_str", req.Nonce_str)
+	req.Sign = c.Sign(m, c.account.apiKey)
+
+	bytesReq, _err := xml.Marshal(req)
+	if _err != nil {
+		log.Printf("以xml形式编码错误, 原因: %v", err)
+		return
+	}
+
+	strReq := string(bytesReq)
+	//wxpay的unifiedorder接口需要http body中xmldoc的根节点是<xml></xml>这种，所以这里需要replace一下
+	strReq = strings.Replace(strReq, "GetSignKeyReq", "xml", -1)
+	bytesReq = []byte(strReq)
+
+	// wxpay的getsignkey接口需要http
+	signReq, _err := http.NewRequest("POST", SandboxSignURL, bytes.NewReader(bytesReq))
+	if _err != nil {
+		log.Printf("获取验收仿真测试系统的API验签密钥错误，error: %s", err)
+		return
+	}
+	signReq.Header.Set("Accept", "application/xml")
+	//这里的http header的设置是必须设置的.
+	signReq.Header.Set("Content-Type", "application/xml;charset=utf-8")
+
+	client := http.Client{}
+	resp, err := client.Do(signReq)
+	if err != nil {
+		log.Printf("获取验收仿真测试系统的API验签密钥错误, 原因:", err)
+		respData, _err := ioutil.ReadAll(resp.Body)
+		if _err != nil {
+			log.Printf("error:", _err)
+			err = _err
+			return
+		}
+		log.Printf(string(respData))
+		return
+	}
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+	xmlResp := GetSignKeyResp{}
+	respData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("error:", err)
+		return
+	}
+	err = xml.Unmarshal(respData, &xmlResp)
+	if err != nil {
+		log.Printf("error:", err)
+		return
+	}
+	//处理return code.
+	if xmlResp.Return_code == "FAIL" {
+		log.Printf("获取验收仿真测试系统的API验签密钥错误，原因:Code=%v MSG=%v", xmlResp.Return_code, xmlResp.Return_msg)
+		return
+	}
+	key = xmlResp.Sandbox_signkey
+	return
 }
